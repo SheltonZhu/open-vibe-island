@@ -144,6 +144,11 @@ public struct CodexHookPayload: Equatable, Codable, Sendable {
     /// Set to `true` by the Python hook client to indicate a remote (SSH) session.
     public var remote: Bool?
 
+    /// Set by the remote Python hook client when `OPEN_ISLAND_NOTIFY_ONLY`
+    /// is enabled: tool-use events become running-activity notifications
+    /// instead of blocking approval requests on the remote agent.
+    public var openIslandNotifyOnly: Bool?
+
     private enum CodingKeys: String, CodingKey {
         case cwd
         case hookEventName = "hook_event_name"
@@ -166,6 +171,7 @@ public struct CodexHookPayload: Equatable, Codable, Sendable {
         case stopHookActive = "stop_hook_active"
         case lastAssistantMessage = "last_assistant_message"
         case remote
+        case openIslandNotifyOnly = "open_island_notify_only"
     }
 
     public init(
@@ -189,7 +195,8 @@ public struct CodexHookPayload: Equatable, Codable, Sendable {
         prompt: String? = nil,
         stopHookActive: Bool? = nil,
         lastAssistantMessage: String? = nil,
-        remote: Bool? = nil
+        remote: Bool? = nil,
+        openIslandNotifyOnly: Bool? = nil
     ) {
         self.cwd = cwd
         self.hookEventName = hookEventName
@@ -212,6 +219,7 @@ public struct CodexHookPayload: Equatable, Codable, Sendable {
         self.stopHookActive = stopHookActive
         self.lastAssistantMessage = lastAssistantMessage
         self.remote = remote
+        self.openIslandNotifyOnly = openIslandNotifyOnly
     }
 
     public init(from decoder: any Decoder) throws {
@@ -237,6 +245,7 @@ public struct CodexHookPayload: Equatable, Codable, Sendable {
         stopHookActive = try container.decodeIfPresent(Bool.self, forKey: .stopHookActive)
         lastAssistantMessage = try container.decodeIfPresent(String.self, forKey: .lastAssistantMessage)
         remote = try container.decodeIfPresent(Bool.self, forKey: .remote)
+        openIslandNotifyOnly = try container.decodeIfPresent(Bool.self, forKey: .openIslandNotifyOnly)
     }
 }
 

@@ -98,9 +98,12 @@ Or connect directly with:
 ssh -R /tmp/open-island-$(id -u).sock:/tmp/open-island-$(id -u).sock user@myserver
 ```
 
-### 4. Configure Codex hooks on the remote
+### 4. Configure Codex hooks on the remote (optional)
 
-Edit `~/.codex/hooks.json` on the remote server:
+Codex reads hooks from `~/.codex/hooks.json` on the remote server. Use the
+notify-only mode for `PreToolUse` / `PostToolUse` so tool calls post a
+"Running: ..." activity without blocking the remote agent while it waits for
+an approval round-trip to your Mac:
 
 ```json
 {
@@ -117,6 +120,12 @@ Edit `~/.codex/hooks.json` on the remote server:
     "PermissionRequest": [
       { "hooks": [{ "type": "command", "command": "OPEN_ISLAND_SOCKET_PATH=/tmp/open-island-501.sock python3 ~/.local/bin/open-island-hooks.py --source codex", "timeout": 3600 }] }
     ],
+    "PreToolUse": [
+      { "hooks": [{ "type": "command", "command": "OPEN_ISLAND_SOCKET_PATH=/tmp/open-island-501.sock OPEN_ISLAND_NOTIFY_ONLY=1 OPEN_ISLAND_NOTIFY_TIMEOUT=2 python3 ~/.local/bin/open-island-hooks.py --source codex", "timeout": 5 }] }
+    ],
+    "PostToolUse": [
+      { "hooks": [{ "type": "command", "command": "OPEN_ISLAND_SOCKET_PATH=/tmp/open-island-501.sock OPEN_ISLAND_NOTIFY_ONLY=1 OPEN_ISLAND_NOTIFY_TIMEOUT=2 python3 ~/.local/bin/open-island-hooks.py --source codex", "timeout": 5 }] }
+    ],
     "Stop": [
       { "hooks": [{ "type": "command", "command": "OPEN_ISLAND_SOCKET_PATH=/tmp/open-island-501.sock python3 ~/.local/bin/open-island-hooks.py --source codex", "timeout": 45 }] }
     ]
@@ -124,9 +133,12 @@ Edit `~/.codex/hooks.json` on the remote server:
 }
 ```
 
-Replace `501` with your local UID (`id -u`). Codex may require a manual
-trust review before running the hooks: open `/hooks` inside Codex CLI and
-approve the Open Island entries.
+Replace `501` with your local UID (or the mapped remote UID described below).
+`PermissionRequest` still waits (up to an hour) for an Allow/Deny decision in
+Open Island; the notify-only entries return within a couple of seconds.
+
+Codex may require a manual trust review before running the hooks: open
+`/hooks` inside Codex CLI and approve the Open Island entries.
 
 > **Important:** Codex silently skips hooks that have not been approved yet.
 > If you start an SSH task before running the trust review, no events reach
